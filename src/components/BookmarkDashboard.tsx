@@ -1,6 +1,6 @@
 'use client';
 import { useState, FormEvent } from 'react';
-import { useTheme } from 'next-themes';
+import { useRouter } from 'next/navigation';
 
 type Bookmark = {
   id: number;
@@ -16,17 +16,16 @@ interface BookmarkDashboardProps {
   initialBookmarks: Bookmark[];
 }
 
-export default function BookmarkDashboard({
-  initialBookmarks,
-}: BookmarkDashboardProps) {
+export default function BookmarkDashboard({ initialBookmarks }: BookmarkDashboardProps) {
   const [bookmarks, setBookmarks] = useState<Bookmark[]>(initialBookmarks);
   const [newUrl, setNewUrl] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const { theme, setTheme } = useTheme();
+  const router = useRouter();
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (isLoading) return;
     setIsLoading(true);
     setError(null);
 
@@ -49,109 +48,120 @@ export default function BookmarkDashboard({
   };
 
   const handleDelete = async (bookmarkId: number) => {
-    if (!confirm('Are you sure you want to delete this bookmark?')) return;
-
-    const res = await fetch(`/api/bookmarks/${bookmarkId}`, {
-      method: 'DELETE',
-    });
+    if (!confirm('Delete this bookmark?')) return;
+    const res = await fetch(`/api/bookmarks/${bookmarkId}`, { method: 'DELETE' });
 
     if (res.ok) {
-      setBookmarks(bookmarks.filter((bookmark) => bookmark.id !== bookmarkId));
+      setBookmarks(bookmarks.filter((b) => b.id !== bookmarkId));
     } else {
-      alert('Failed to delete bookmark.');
+      alert('Failed to delete.');
+    }
+  };
+
+  const handleLogout = async () => {
+    const res = await fetch('/api/auth/logout', { method: 'POST' });
+    if (res.ok) {
+      router.push('/login');
+    } else {
+      alert('Logout failed.');
     }
   };
 
   return (
-    <div>
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-          My Bookmarks
-        </h1>
-        <button
-          onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-          className="px-3 py-2 border rounded-md text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600"
-        >
-          {theme === 'dark' ? 'Light' : 'Dark'} Mode
-        </button>
-      </div>
+    <section className="min-h-screen bg-gradient-to-br from-green-300 via-blue-300 to-pink-300 dark:from-green-900 dark:via-blue-900 dark:to-pink-900 p-6 sm:p-10">
+      <div className="max-w-6xl mx-auto backdrop-blur-sm bg-white/60 dark:bg-slate-900/60 rounded-3xl shadow-xl p-8 sm:p-10">
+        {/* Header */}
+        <div className="mb-10 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div>
+            <h1 className="text-4xl font-extrabold tracking-tight text-slate-900 dark:text-white">
+              Save Your Links
+            </h1>
+            <p className="mt-1 text-slate-700 dark:text-slate-300 text-lg">
+              Summarize and organize your favorite links beautifully.
+            </p>
+          </div>
 
-      <form
-        onSubmit={handleSubmit}
-        className="mb-8 p-4 border rounded-lg bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700"
-      >
-        <div className="flex flex-col sm:flex-row gap-2">
+          <button
+            onClick={handleLogout}
+            className="cursor-pointer px-5 py-2 text-sm font-semibold rounded-lg bg-white/80 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 hover:bg-white hover:shadow-md dark:hover:bg-slate-700 transition"
+          >
+            Logout
+          </button>
+        </div>
+
+        {/* Form */}
+        <form
+          onSubmit={handleSubmit}
+          className="flex flex-col sm:flex-row gap-4 items-stretch mb-10"
+        >
           <input
             type="url"
             value={newUrl}
             onChange={(e) => setNewUrl(e.target.value)}
-            placeholder="https://example.com"
+            placeholder="Paste a link to summarize..."
             required
-            className="flex-grow w-full px-3 py-2 placeholder-gray-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+            className="flex-grow px-4 py-3 rounded-xl border border-slate-300 bg-white/80 dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-500 shadow-md focus:outline-none focus:ring-2 focus:ring-pink-500"
           />
           <button
             type="submit"
             disabled={isLoading}
-            className="px-4 py-2 font-medium text-white bg-indigo-600 border border-transparent rounded-md hover:bg-indigo-700 disabled:bg-indigo-400"
+            className="px-6 py-3 font-semibold rounded-xl  cursor-pointer bg-gradient-to-r from-green-500 via-blue-500 to-pink-500 text-white hover:brightness-110 transition-all shadow-lg disabled:opacity-50"
           >
             {isLoading ? 'Saving...' : 'Add Link'}
           </button>
-        </div>
-        {error && <p className="mt-2 text-sm text-red-500">{error}</p>}
-      </form>
+        </form>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {bookmarks.map((bookmark) => (
-          <div
-            key={bookmark.id}
-            className="p-4 border rounded-lg bg-white dark:bg-gray-800 shadow-sm flex flex-col border-gray-200 dark:border-gray-700"
-          >
-            <div className="flex items-start justify-between mb-2">
-              <div className="flex items-center min-w-0">
-                {bookmark.favicon && (
-                  <img
-                    src={bookmark.favicon}
-                    alt=""
-                    className="w-4 h-4 mr-2 flex-shrink-0"
-                  />
-                )}
-                <h2 className="font-bold text-lg truncate text-gray-900 dark:text-white">
-                  {bookmark.title}
-                </h2>
-              </div>
-              <button
-                onClick={() => handleDelete(bookmark.id)}
-                className="ml-2 text-gray-400 hover:text-red-500 flex-shrink-0"
-                aria-label="Delete bookmark"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-5 w-5"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 012 0v6a1 1 0 11-2 0V8z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-              </button>
-            </div>
-            <p className="text-gray-600 dark:text-gray-400 text-sm flex-grow line-clamp-3">
-              {bookmark.summary}
-            </p>
-            <a
-              href={bookmark.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-indigo-500 hover:underline text-xs mt-3 self-start truncate"
+        {/* Error Message */}
+        {error && <p className="mb-6 text-red-600 text-sm text-center">{error}</p>}
+
+        {/* Bookmark Grid */}
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {bookmarks.map((bookmark) => (
+            <div
+              key={bookmark.id}
+              className="flex flex-col h-full bg-white/80 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-700 rounded-2xl p-5 shadow-md hover:shadow-xl transition-all backdrop-blur-md"
             >
-              {bookmark.url}
-            </a>
-          </div>
-        ))}
+              <div className="flex justify-between items-start mb-3">
+                <div className="flex items-center gap-2 min-w-0">
+                  {bookmark.favicon && (
+                    <img
+                      src={bookmark.favicon}
+                      alt=""
+                      className="w-5 h-5 rounded-full flex-shrink-0"
+                      onError={(e) => (e.currentTarget.style.display = 'none')}
+                    />
+                  )}
+                  <h2 className="text-lg font-semibold text-slate-800 dark:text-white truncate">
+                    {bookmark.title}
+                  </h2>
+                </div>
+                <button
+                  onClick={() => handleDelete(bookmark.id)}
+                  className="p-1 text-slate-400 hover:text-red-500 rounded-full transition hover:bg-slate-100 dark:hover:bg-slate-800"
+                  aria-label="Delete"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zm-2 6a1 1 0 112 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 112 0v6a1 1 0 11-2 0V8z" clipRule="evenodd" />
+                  </svg>
+                </button>
+              </div>
+
+              <p className="text-sm text-slate-700 dark:text-slate-300 mb-4 line-clamp-4 flex-grow">
+                {bookmark.summary}
+              </p>
+
+              <a
+                href={bookmark.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs text-blue-700 dark:text-blue-400 hover:underline truncate"
+              >
+                {bookmark.url}
+              </a>
+            </div>
+          ))}
+        </div>
       </div>
-    </div>
+    </section>
   );
 }

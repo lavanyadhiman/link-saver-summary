@@ -1,8 +1,13 @@
-// src/app/layout.tsx
+
+
+
+// =======================================================================
+// File: src/app/layout.tsx (SIMPLIFIED)
+// Purpose: Root layout without theme provider or dark classes.
+// =======================================================================
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
-import { ThemeProvider } from '@/components/ThemeProvider'; // Import the provider
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -17,16 +22,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body className={inter.className}>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-          {children}
-        </ThemeProvider>
+    <html lang="en">
+      <body className={`${inter.className} bg-slate-50`}>
+        {children}
       </body>
     </html>
   );

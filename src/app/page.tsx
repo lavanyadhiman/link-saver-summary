@@ -1,3 +1,10 @@
+
+
+// =======================================================================
+// File: src/app/page.tsx
+// Purpose: The main home page. It's a server component that fetches initial
+// data and passes it to the interactive client component.
+// =======================================================================
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { getDb } from '@/lib/db';
@@ -19,7 +26,6 @@ function getUserIdFromCookie() {
 
 export default async function HomePage() {
   const userId = getUserIdFromCookie();
-
   if (!userId) {
     redirect('/login');
   }
@@ -42,10 +48,9 @@ export default async function HomePage() {
   };
 
   return (
-    <div className="min-h-screen">
-        <main className="container p-4 mx-auto">
-            <BookmarkDashboard initialBookmarks={initialBookmarks as Bookmark[]} />
-        </main>
-    </div>
+    <main className="min-h-screen">
+      <BookmarkDashboard initialBookmarks={initialBookmarks as Bookmark[]} />
+    </main>
   );
 }
+
