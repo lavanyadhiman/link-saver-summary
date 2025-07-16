@@ -1,23 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDb } from '@/lib/db';
 import { getUserIdFromToken } from '@/lib/auth';
-import type { NextApiRequest } from 'next';
-import type { NextRequest as AppNextRequest } from 'next/server';
 
-type RouteContext = {
-  params: { id: string };
-};
-
+// The type for the second argument must be defined inline like this.
+// A separate type alias like 'RouteContext' will cause a build error.
 export async function DELETE(
-  req: AppNextRequest,
-  context: RouteContext
+  req: NextRequest,
+  { params }: { params: { id: string } }
 ) {
+  const { id } = params; // Destructure id from params
+
   const userId = getUserIdFromToken(req);
   if (!userId) {
     return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
   }
 
-  const bookmarkId = parseInt(context.params.id, 10);
+  const bookmarkId = parseInt(id, 10);
   if (isNaN(bookmarkId)) {
     return NextResponse.json({ message: 'Invalid bookmark ID' }, { status: 400 });
   }
