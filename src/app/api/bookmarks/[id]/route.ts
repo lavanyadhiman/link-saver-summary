@@ -1,4 +1,3 @@
-// src/app/api/bookmarks/[id]/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { getDb } from '@/lib/db';
 import { getUserIdFromToken } from '@/lib/auth';
