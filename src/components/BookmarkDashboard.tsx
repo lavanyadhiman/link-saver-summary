@@ -1,10 +1,3 @@
-// =======================================================================
-// File: src/components/BookmarkDashboard.tsx
-// Purpose: The main interactive UI for the dashboard.
-// Update: Fixed the drag-and-drop functionality to allow for multiple
-// reorders by using a more robust event handler and a grid-appropriate
-// sorting strategy.
-// =======================================================================
 'use client';
 import { useState, FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
@@ -22,7 +15,7 @@ import {
   SortableContext,
   sortableKeyboardCoordinates,
   useSortable,
-  rectSortingStrategy, // FIX: Using a strategy better for grids
+  rectSortingStrategy,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 
@@ -36,8 +29,13 @@ type Bookmark = {
   createdAt: string;
 };
 
-// A dedicated component for each sortable bookmark item
-function SortableBookmarkItem({ bookmark, handleDelete }: { bookmark: Bookmark, handleDelete: (id: number) => void }) {
+function SortableBookmarkItem({
+  bookmark,
+  handleDelete,
+}: {
+  bookmark: Bookmark;
+  handleDelete: (id: number) => void;
+}) {
   const {
     attributes,
     listeners,
@@ -60,11 +58,10 @@ function SortableBookmarkItem({ bookmark, handleDelete }: { bookmark: Bookmark, 
     >
       <div className="flex justify-between items-start mb-3">
         <div className="flex items-center gap-2 min-w-0">
-          {/* Drag Handle */}
           <div {...listeners} className="text-slate-400 cursor-grab touch-none p-1">
-             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                <path d="M5 8a1 1 0 11-2 0 1 1 0 012 0zM5 12a1 1 0 11-2 0 1 1 0 012 0zM9 8a1 1 0 11-2 0 1 1 0 012 0zM9 12a1 1 0 11-2 0 1 1 0 012 0zM13 8a1 1 0 11-2 0 1 1 0 012 0zM13 12a1 1 0 11-2 0 1 1 0 012 0z" />
-             </svg>
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+              <path d="M5 8a1 1 0 11-2 0 1 1 0 012 0zM5 12a1 1 0 11-2 0 1 1 0 012 0zM9 8a1 1 0 11-2 0 1 1 0 012 0zM9 12a1 1 0 11-2 0 1 1 0 012 0zM13 8a1 1 0 11-2 0 1 1 0 012 0zM13 12a1 1 0 11-2 0 1 1 0 012 0z" />
+            </svg>
           </div>
           {bookmark.favicon && (
             <img
@@ -84,35 +81,28 @@ function SortableBookmarkItem({ bookmark, handleDelete }: { bookmark: Bookmark, 
           aria-label="Delete"
         >
           <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
-            <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zm-2 6a1 1 0 112 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 112 0v6a1 1 0 11-2 0V8z" clipRule="evenodd" />
+            <path
+              fillRule="evenodd"
+              d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zm-2 6a1 1 0 112 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 112 0v6a1 1 0 11-2 0V8z"
+              clipRule="evenodd"
+            />
           </svg>
         </button>
       </div>
-     <p className="text-sm text-slate-700 mb-4 line-clamp-4 flex-grow whitespace-pre-line">
-  {bookmark.summary
-    .replace(/^(Title|URL Source|Markdown Content):/gim, '')
-    .replace(/https?:\/\/[^\s)]+/g, '')                    // remove all URLs
-    .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')               // [text](url) → text
-    .replace(/#+\s?/g, '')                                 // remove markdown headers
-    .replace(/={3,}/g, '')                                 // remove === separators
-    .trim()
-    .slice(0, 400)}
-</p>
 
-
-
-      <a
-        href={bookmark.url}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="text-xs text-blue-700 hover:underline truncate"
-      >
-        {bookmark.url}
-      </a>
+      <p className="text-sm text-slate-700 mb-4 line-clamp-4 flex-grow whitespace-pre-line">
+        {bookmark.summary
+          .replace(/^(Title|URL Source|Markdown Content):/gim, '')
+          .replace(/https?:\/\/[^\s)]+/g, '')
+          .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+          .replace(/#+\s?/g, '')
+          .replace(/={3,}/g, '')
+          .trim()
+          .slice(0, 400)}
+      </p>
     </div>
   );
 }
-
 
 interface BookmarkDashboardProps {
   initialBookmarks: Bookmark[];
@@ -177,14 +167,9 @@ export default function BookmarkDashboard({ initialBookmarks }: BookmarkDashboar
     }
   };
 
-  // FIX: A more robust drag handler
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
-    
-    // Do nothing if dropped in the same spot or outside a droppable area
-    if (!over || active.id === over.id) {
-      return;
-    }
+    if (!over || active.id === over.id) return;
 
     setBookmarks((currentBookmarks) => {
       const oldIndex = currentBookmarks.findIndex((b) => b.id === active.id);
@@ -236,22 +221,23 @@ export default function BookmarkDashboard({ initialBookmarks }: BookmarkDashboar
           </button>
         </form>
 
-        {/* Error Message */}
+        {/* Error */}
         {error && <p className="mb-6 text-red-600 text-sm text-center">{error}</p>}
 
-        {/* Bookmark Grid with Drag-and-Drop Context */}
-        <DndContext 
+        {/* Bookmarks Grid */}
+        <DndContext
           sensors={sensors}
           collisionDetection={closestCenter}
           onDragEnd={handleDragEnd}
         >
-          <SortableContext 
-            items={bookmarks} // Pass the full bookmark objects
-            strategy={rectSortingStrategy} // FIX: Use grid strategy
-          >
+          <SortableContext items={bookmarks} strategy={rectSortingStrategy}>
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {bookmarks.map(bookmark => (
-                <SortableBookmarkItem key={bookmark.id} bookmark={bookmark} handleDelete={handleDelete} />
+              {bookmarks.map((bookmark) => (
+                <SortableBookmarkItem
+                  key={bookmark.id}
+                  bookmark={bookmark}
+                  handleDelete={handleDelete}
+                />
               ))}
             </div>
           </SortableContext>

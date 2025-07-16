@@ -73,7 +73,7 @@ export default function AuthForm({ formType, onSubmit, error, isLoading }: AuthF
         <div className="text-sm text-center pt-4 text-slate-300">
           {formType === 'login' ? (
             <>
-              Don't have an account?{' '}
+              Don&rsquo;t have an account?{' '}
               <Link
                 href="/signup"
                 className="text-blue-400 hover:underline hover:text-blue-300 transition"
